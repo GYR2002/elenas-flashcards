@@ -20,6 +20,8 @@ A small flashcard app in one file, `index.html`. To use it, double-click the fil
    - **Daily challenge**: 30 words a day from all decks, the ones you find hardest first. A word counts on the progress bar once you rate it *Good* or *Easy*; *Hard* words come back later in the session. Your progress is kept if you stop and continue later that day. A new set starts each day. Open **Today’s words** in the box to see the list, with which ones you already know. **Reset** starts the day over with new words.
    - **Test random words**: 10, 20 or 50 random cards from all decks.
    - Next to the daily challenge sits a stick figure on the toilet. He strains harder as your progress bar fills and only succeeds when the challenge is done.
+   - **Streak**: the number of days in a row you finished the daily challenge (🔥 on the front page). Missing a day resets it. When you finish, a popup shows your streak filling toward the next milestone (3, 7, 14, 30, 60, 100, 200, 365 days).
+   - **Missed days**: after 1 missed day he's red and sweating from the start. After 2 he's purple, bloated and desperate. After 3 he dies of constipation, and a gravestone stays until you finish a challenge. Then he flies out of the toilet like Superman and sits back down.
    - Both are practice only: they don't change when a card is due in *Review due cards*. They do remember which words you miss, so the daily challenge can pick your weakest words.
 
 5. **Deck results**: each deck shows **Your results**: how many answers were *Hard*, *Good* and *Easy*, the % right, and a chart of the last 14 days (hover or tap a day for its numbers). Every kind of test counts, except exam mode. Click **Hard**, **Good** or **Easy** to see which words you rated that way and how often.

@@ -215,9 +215,70 @@
   @keyframes loo-shake { 0%, 100% { transform: translateX(0) } 25% { transform: translateX(calc(-.4px - 1.6px * var(--s))) rotate(calc(-1deg * var(--s))) } 75% { transform: translateX(calc(.4px + 1.6px * var(--s))) } }
   @keyframes loo-drip { 0% { transform: translateY(0); opacity: 0 } 20% { opacity: 1 } 100% { transform: translateY(14px); opacity: 0 } }
   @keyframes loo-pulse { 50% { opacity: .35 } }
-  @keyframes loo-drop { from { transform: translateY(-22px) } to { transform: translateY(0) } }
+  @keyframes loo-drop { from { transform: translateY(-22px); opacity: 0 } 25% { opacity: 1 } to { transform: translateY(0); opacity: 1 } }
   @keyframes loo-splash { 0% { transform: translateY(6px); opacity: 0 } 40% { opacity: 1 } 100% { transform: translateY(-8px); opacity: 0 } }
   @keyframes loo-pop { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+  /* missed days: 1 = red and sweating from the start, 2 = purple, bulging eyes, bloated */
+  .loo .belly, .loo .face-bulge, .loo .face-dead, .loo .grave, .loo .ghost, .loo .argh, .loo .super { display: none; }
+  .loo.m2 .face-strain { display: none; }
+  .loo.m2 .face-bulge, .loo.m2 .belly { display: inline; }
+  .loo.m2 .flush { fill: #8e4ec6; }
+  /* dead: gravestone + ghost. The first time, he dies on screen */
+  .loo.is-dead .guy, .loo.is-dead .win { display: none; }
+  .loo.is-dead .grave, .loo.is-dead .ghost { display: inline; }
+  .loo .grave, .loo .ghost { transform-box: view-box; }
+  .loo.is-dead .ghost { animation: loo-float 2.4s ease-in-out infinite; }
+  .loo.is-dying .guy { display: inline; animation: loo-agony .09s linear 20, loo-fall .7s ease-in 1.8s forwards, loo-vanish .5s 3s forwards; }
+  .loo.is-dying .flush { fill: #e5484d; opacity: .9; }
+  .loo.is-dying .face-calm, .loo.is-dying .face-strain { display: none; }
+  .loo.is-dying .belly, .loo.is-dying .sweat { display: inline; }
+  .loo.is-dying .face-bulge { display: inline; animation: loo-off 0s 1.8s forwards; }
+  .loo.is-dying .face-dead { display: inline; visibility: hidden; animation: loo-on 0s 1.8s forwards; }
+  .loo.is-dying .argh { display: inline; animation: loo-pulse .3s 6, loo-off 0s 1.8s forwards; }
+  .loo.is-dying .grave { animation: loo-rise .6s ease-out 3.2s both; }
+  .loo.is-dying .ghost { animation: loo-appear .6s 3.8s both, loo-float 2.4s ease-in-out 3.8s infinite; }
+  /* revived: flies out of the toilet like Superman, loops, lands back on the seat */
+  .loo.is-revive .super { display: inline; transform-box: view-box; transform-origin: 0 0; animation: loo-fly 2.2s cubic-bezier(.4, 0, .6, 1) both; }
+  .loo .cape { fill: #e5484d; transform-box: fill-box; transform-origin: right center; animation: loo-cape .15s ease-in-out infinite alternate; }
+  .loo.is-revive .guy { animation: loo-land .45s cubic-bezier(.3, 1.5, .5, 1) 2.1s both; }
+  .loo.is-revive .poo-g { animation-delay: 2.8s; } .loo.is-revive .splash { animation-delay: 3.45s; } .loo.is-revive .ahh { animation-delay: 3.7s; }
+  @keyframes loo-agony { 0%, 100% { transform: none } 25% { transform: translate(-2.5px, 1px) rotate(-4deg) } 75% { transform: translate(2.5px, -1px) rotate(4deg) } }
+  @keyframes loo-fall { to { transform: rotate(35deg) translateY(4px) } }
+  @keyframes loo-vanish { to { opacity: 0 } }
+  @keyframes loo-off { to { visibility: hidden } }
+  @keyframes loo-on { to { visibility: visible } }
+  @keyframes loo-rise { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
+  @keyframes loo-appear { from { opacity: 0 } }
+  @keyframes loo-float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+  @keyframes loo-cape { from { transform: scaleY(.7) } to { transform: scaleY(1.15) } }
+  @keyframes loo-land { from { transform: translateY(-40px); opacity: 0 } 60% { transform: translateY(2px); opacity: 1 } to { transform: none; opacity: 1 } }
+  @keyframes loo-fly {
+    0% { transform: translate(58px, 112px) rotate(-90deg) scale(.3); opacity: 0 }
+    10% { transform: translate(58px, 86px) rotate(-90deg) scale(.9); opacity: 1 }
+    35% { transform: translate(62px, 14px) rotate(-75deg) scale(1) }
+    55% { transform: translate(104px, 18px) rotate(0deg) scale(1) }
+    75% { transform: translate(98px, 56px) rotate(90deg) scale(1) }
+    90% { transform: translate(70px, 40px) rotate(200deg) scale(.9); opacity: 1 }
+    100% { transform: translate(56px, 30px) rotate(250deg) scale(.7); opacity: 0 }
+  }
+
+  /* streak */
+  .streak-line { margin: -2px 0 10px; font-size: .9rem; }
+  .streak-line.warn { color: var(--danger); font-weight: 600; }
+  .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; }
+  .backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .45); animation: loo-appear .2s both; }
+  .pop { position: relative; background: var(--surface); border-radius: 18px; padding: 24px 22px 20px; width: min(360px, 100%); text-align: center; box-shadow: var(--shadow); animation: pop-in .4s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .pop h2 { font-size: 1.4rem; margin: 4px 0 6px; }
+  .pop p { margin: 6px 0; }
+  .pop .flame { font-size: 3rem; display: inline-block; animation: flame .6s ease-in-out infinite alternate; }
+  .pop .count { display: inline-block; animation: pop-in .5s cubic-bezier(.2, 1.6, .4, 1) .5s both; }
+  .streak-bar { height: 14px; border-radius: 7px; background: var(--border); overflow: hidden; margin: 16px 0 4px; }
+  .streak-bar div { height: 100%; border-radius: 7px; background: linear-gradient(90deg, #f59e0b, #ef4444); animation: streak-fill 1.1s cubic-bezier(.3, .8, .3, 1) .4s both; }
+  .streak-scale { display: flex; justify-content: space-between; margin-bottom: 14px; }
+  @keyframes streak-fill { from { width: var(--from) } to { width: var(--to) } }
+  @keyframes pop-in { from { transform: scale(.4); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+  @keyframes flame { from { transform: scale(1) rotate(-4deg) } to { transform: scale(1.12) rotate(4deg) } }
 
   @media (max-width: 520px) {
     .loo { width: 92px; }
@@ -229,7 +290,9 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .flip-inner, .progress div, #toast { transition: none; }
-    .loo * { animation: none !important; }
+    .loo *, .pop, .pop *, .backdrop { animation: none !important; }
+    .streak-bar div { width: var(--to); }
+    .loo.is-dying .guy, .loo.is-revive .super { display: none; }
   }
 </style>
 </head>
@@ -247,14 +310,15 @@
 /* ---------- storage ---------- */
 const KEY = 'elena-flashcards-v1';
 const DAY = 86400000;
-let db = { decks: [], cards: [], settings: { dir: 'fw' }, daily: null, log: {} };
+let db = { decks: [], cards: [], settings: { dir: 'fw' }, daily: null, log: {}, streak: { done: [], since: null } };
 
 function load() {
   try {
     const s = localStorage.getItem(KEY);
     if (s) {
       const d = JSON.parse(s);
-      db = { decks: d.decks || [], cards: (d.cards || []).map(normCard), settings: { dir: 'fw', ...(d.settings || {}) }, daily: d.daily || null, log: d.log || {} };
+      db = { decks: d.decks || [], cards: (d.cards || []).map(normCard), settings: { dir: 'fw', ...(d.settings || {}) }, daily: d.daily || null, log: d.log || {},
+        streak: { done: [], since: null, ...(d.streak || {}) } };
     }
   } catch (e) { /* start empty */ }
 }
@@ -362,7 +426,37 @@ function daily() {
     const have = new Set(d.ids);
     d.ids.push(...weakestFirst(db.cards.filter(c => !have.has(c.id))).slice(0, DAILY_SIZE - d.ids.length).map(c => c.id));
   }
+  if (d.ids.length && !db.streak.since) db.streak.since = d.date; // missed days count from the first challenge
+  if (d.ids.length && d.known.length >= d.ids.length && !db.streak.done.includes(d.date)) db.streak.done.push(d.date);
   return d;
+}
+
+/* ---------- streak: consecutive days with a finished daily challenge ---------- */
+const STREAK_GOALS = [3, 7, 14, 30, 60, 100, 200, 365];
+const addDays = (day, n) => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d + n).toLocaleDateString('sv'); };
+const dayDiff = (a, b) => Math.round((new Date(b + 'T00:00') - new Date(a + 'T00:00')) / DAY);
+
+function streakInfo() {
+  const today = todayStr(), done = new Set(db.streak.done), sorted = [...done].sort();
+  const doneToday = done.has(today), last = sorted[sorted.length - 1] ?? null;
+  // Missed = whole days since the last finished challenge (or since the first one was offered)
+  const ref = last ?? (db.streak.since ? addDays(db.streak.since, -1) : today);
+  const missed = doneToday ? 0 : Math.max(0, dayDiff(ref, today) - 1);
+  let streak = 0;
+  for (let d = doneToday ? today : addDays(today, -1); done.has(d); d = addDays(d, -1)) streak++;
+  let best = 0, run = 0;
+  sorted.forEach((d, i) => { run = i && dayDiff(sorted[i - 1], d) === 1 ? run + 1 : 1; best = Math.max(best, run); });
+  return { streak, best, missed, doneToday, dead: missed >= 3, deathKey: ref };
+}
+
+// Called when the last word of today's challenge becomes known
+function completeDaily() {
+  const today = todayStr();
+  if (db.streak.done.includes(today)) return;
+  const before = streakInfo();
+  db.streak.done.push(today);
+  if (before.dead) db.streak.revivedOn = today;
+  state.celebrate = { from: before.streak, to: streakInfo().streak, revived: before.dead };
 }
 
 function dueLabel(c) {
@@ -430,10 +524,32 @@ const app = $('#app');
 const state = { view: 'home', deckId: null, editingId: null, search: '', bulkOpen: false, bulkText: '', sep: 'auto', study: null,
   add: { front: '', back: '' }, edit: null };
 
+// Streak popup: the count goes up and the bar fills toward the next milestone
+function celebrateHTML() {
+  const c = state.celebrate;
+  if (!c) return '';
+  const next = STREAK_GOALS.find(g => g >= c.to) ?? Math.ceil((c.to + 1) / 100) * 100;
+  const prev = [0, ...STREAK_GOALS].filter(g => g < next).pop();
+  const pct = n => Math.max(0, Math.min(100, (n - prev) / (next - prev) * 100));
+  const msg = c.to === next ? `🏆 Milestone: ${plural(next, 'day')} in a row!` : `${plural(next - c.to, 'more day')} to reach ${next} days.`;
+  return `
+    <div class="overlay"><div class="backdrop" data-action="close-celebrate"></div>
+      <div class="pop" role="dialog" aria-modal="true" aria-labelledby="pop-title">
+        <div class="flame">🔥</div>
+        <h2 id="pop-title"><span class="count">${c.to}</span>-day streak!</h2>
+        ${c.revived ? '<p><b>He’s alive again!</b> Keep him regular.</p>' : ''}
+        <div class="streak-bar" style="--from:${pct(c.from)}%;--to:${pct(c.to)}%"><div></div></div>
+        <div class="streak-scale muted small"><span>${prev ? plural(prev, 'day') : 'Start'}</span><span>${plural(next, 'day')}</span></div>
+        <p class="muted">${msg}</p>
+        <button class="btn primary" data-action="close-celebrate">Nice!</button>
+      </div></div>`;
+}
+
 function render() {
   if (state.view === 'deck' && !deck(state.deckId)) state.view = 'home';
   if (state.view === 'study' && (!state.study || (state.study.from === 'deck' && !deck(state.deckId)))) state.view = 'home';
-  app.innerHTML = state.view === 'home' ? homeHTML() : state.view === 'deck' ? deckHTML() : studyHTML();
+  app.innerHTML = (state.view === 'home' ? homeHTML() : state.view === 'deck' ? deckHTML() : studyHTML()) + celebrateHTML();
+  $('.pop .btn')?.focus();
   if (state.view === 'deck') { updatePreview(); applySearch(); }
   if (state.view === 'study') { const f = $('.flip'); if (f) f.focus({ preventScroll: true }); }
 }
@@ -469,10 +585,21 @@ function homeHTML() {
 function practiceHTML() {
   const d = daily(), total = d.ids.length, known = d.known.length, complete = known >= total;
   const n = db.cards.length, sizes = [10, 20, 50].filter(x => x < n);
+  const info = streakInfo(), today = todayStr();
+  let v = { p: total ? known / total : 0, known, total, done: info.doneToday || complete, missed: info.missed, dead: info.dead, dying: false, revive: false };
+  if (v.dead && db.streak.deathSeen !== info.deathKey) { v.dying = true; db.streak.deathSeen = info.deathKey; save(); }
+  if (v.done && db.streak.revivedOn === today && db.streak.reviveSeen !== today) { v.revive = true; db.streak.reviveSeen = today; save(); }
+  const warn = v.done ? '' : v.dead ? '🪦 He died of constipation after 3 days without relief. Finish today’s challenge to bring him back.'
+    : v.missed === 2 ? '⚠️ 2 days without relief! Finish today’s challenge or he dies.'
+    : v.missed === 1 ? '😣 1 day without relief. Finish today’s challenge to help him.' : '';
+  const streakLine = info.streak ? `🔥 <b>${info.streak}-day streak</b>${info.best > info.streak ? ` · best ${info.best}` : ''}`
+    : info.best ? `Streak lost · best ${plural(info.best, 'day')}` : 'Finish today’s challenge to start a streak 🔥';
   return `
     <div class="daily-row">
     <section class="panel">
       <div class="panel-head"><h2>Daily challenge</h2><span class="muted small">${known} / ${total} known${known ? ` · <button class="link small" data-action="reset-daily">Reset</button>` : ''}</span></div>
+      <p class="streak-line">${streakLine}</p>
+      ${warn ? `<p class="streak-line warn">${warn}</p>` : ''}
       <div class="progress tall" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${known}"><div style="width:${total ? known / total * 100 : 0}%"></div></div>
       ${complete
         ? `<p class="muted small">🎉 Done for today. A new set of words is ready tomorrow.</p>`
@@ -487,7 +614,7 @@ function practiceHTML() {
         }).join('')}</ul>
       </details>` : ''}
     </section>
-    ${looHTML(total ? known / total : 0, complete, known, total)}
+    ${looHTML(v)}
     </div>
     <section class="panel">
       <h2>Test random words</h2>
@@ -499,12 +626,17 @@ function practiceHTML() {
     </section>`;
 }
 
-// A stick figure on the toilet: strains harder as the daily challenge fills up, finally succeeds at 100%
-function looHTML(p, done, known, total) {
-  const cls = done ? 'is-done' : p > 0 ? `is-strain${p >= 1 / 3 ? ' is-sweaty' : ''}${p >= 2 / 3 ? ' is-hnngy' : ''}` : '';
-  const cap = done ? 'Relief!' : p > 0 ? `Pushing… ${known}/${total}` : 'Needs to go…';
+// A stick figure on the toilet: strains harder as the daily challenge fills up (and after missed days),
+// succeeds at 100%, dies after 3 missed days and flies back like Superman when revived
+function looHTML({ p, known, total, done, missed, dead, dying, revive }) {
+  const s = done || dead ? 0 : Math.max(p, [0, .45, .85][Math.min(missed, 2)]);
+  const cls = dead ? `is-dead${dying ? ' is-dying' : ''}`
+    : done ? `is-done${revive ? ' is-revive' : ''}`
+    : (s > 0 ? `is-strain${s >= 1 / 3 ? ' is-sweaty' : ''}${s >= 2 / 3 ? ' is-hnngy' : ''}` : '') + (missed >= 2 ? ' m2' : '');
+  const cap = dead ? 'R.I.P.' : revive ? 'He’s back!' : done ? 'Relief!'
+    : missed >= 2 ? `Last chance! ${known}/${total}` : p > 0 ? `Pushing… ${known}/${total}` : missed ? '1 day without relief…' : 'Needs to go…';
   return `
-    <figure class="loo ${cls}" style="--s:${done ? 0 : p.toFixed(2)}" role="img" aria-label="Stick figure on a toilet: ${cap}">
+    <figure class="loo ${cls}" style="--s:${s.toFixed(2)}" role="img" aria-label="Stick figure on a toilet: ${cap}">
       <svg viewBox="0 0 130 150" aria-hidden="true">
         <defs><clipPath id="bowl-clip"><path d="M30 96 H88 Q88 122 66 127 H44 Q30 120 30 96 Z"/></clipPath></defs>
         <rect class="porc" x="8" y="48" width="22" height="44" rx="4"/>
@@ -515,15 +647,33 @@ function looHTML(p, done, known, total) {
         <g class="win splash"><path class="drop" d="M46 94 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/><path class="drop" d="M74 92 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/></g>
         <rect class="porc" x="26" y="88" width="64" height="7" rx="3"/>
         <g class="guy">
+          <ellipse class="belly" cx="60" cy="74" rx="9" ry="10" fill="var(--surface)" stroke="var(--text)" stroke-width="2.4"/>
           <path class="ln" d="M54 88 L50 57 M54 88 L84 86 L86 122 L96 122 M51 61 L65 74 L80 81"/>
           <circle class="headfill" cx="52" cy="42" r="11"/><circle class="flush" cx="52" cy="42" r="11"/>
           <circle class="ln" cx="52" cy="42" r="11"/>
           <g class="face-calm"><circle cx="55" cy="40" r="1.4" fill="currentColor" style="color:var(--text)"/><circle cx="61" cy="40" r="1.4" fill="currentColor" style="color:var(--text)"/><path class="fx" d="M55 47 H61"/></g>
           <g class="face-strain"><path class="fx" d="M52 37.5 L56 40 L52 42.5 M64 37.5 L60 40 L64 42.5"/><rect x="53" y="45" width="9" height="4" rx="1" fill="#fff" stroke="var(--text)" stroke-width="1.4"/><path class="fx" d="M53 47 H62"/></g>
+          <g class="face-bulge"><circle cx="54.5" cy="39" r="3.2" fill="#fff" stroke="var(--text)" stroke-width="1.2"/><circle cx="61.5" cy="39" r="3.2" fill="#fff" stroke="var(--text)" stroke-width="1.2"/>
+            <circle cx="55.5" cy="39" r="1.1" fill="#111"/><circle cx="62.5" cy="39" r="1.1" fill="#111"/><path class="fx" d="M53 47 q2 -2 4 0 q2 2 4 0 q1 -1 2 0"/></g>
+          <g class="face-dead"><path class="fx" d="M52.5 37.5 l4 4 m0 -4 l-4 4 M59 37.5 l4 4 m0 -4 l-4 4 M54 46 H62"/><ellipse cx="59" cy="48.5" rx="2" ry="2.6" fill="#e5484d"/></g>
           <g class="face-done"><path class="fx" d="M52.5 41 Q54.5 38 56.5 41 M58.5 41 Q60.5 38 62.5 41 M54 46 Q58 51 62 46"/></g>
           <g class="sweat"><path class="drop" d="M41 30 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/><path class="drop" d="M64 27 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/></g>
         </g>
         <text class="say hnng" x="70" y="22">hnnng!</text>
+        <text class="say argh" x="68" y="20" style="fill:#e5484d">ARGH!</text>
+        <g class="grave"><path class="porc" d="M84 143 V110 Q84 96 99 96 Q114 96 114 110 V143 Z"/>
+          <text x="99" y="119" text-anchor="middle" style="font: 700 9px system-ui, sans-serif; fill: var(--muted)">RIP</text>
+          <path class="fx" d="M91 126 H107 M91 131 H104" style="stroke: var(--border)"/><path d="M80 143 H120" stroke="var(--muted)" stroke-width="2"/></g>
+        <g class="ghost"><path d="M88 80 q0 -14 11 -14 q11 0 11 14 v12 l-3.7 -3 l-3.7 3 l-3.6 -3 l-3.6 3 l-3.7 -3 l-3.7 3 z" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.6" opacity=".85"/>
+          <circle cx="95.5" cy="77" r="1.4" fill="var(--muted)"/><circle cx="102.5" cy="77" r="1.4" fill="var(--muted)"/><path d="M97 83 q2 -2 4 0" fill="none" stroke="var(--muted)" stroke-width="1.2"/>
+          <ellipse cx="99" cy="61" rx="7" ry="2" fill="none" stroke="#e0a44a" stroke-width="1.5"/></g>
+        <g class="super"><!-- Superman pose, drawn around (0,0) facing right -->
+          <path class="cape" d="M4 -1 Q-10 -13 -24 -10 L-19 1 Q-10 5 4 2 Z"/>
+          <path class="ln" d="M7 0 H-14 L-32 -3 M-14 0 L-32 4 M5 -1 L28 -3 M5 1 L-6 5"/>
+          <circle cx="31" cy="-3" r="2.6" fill="var(--text)"/>
+          <circle class="headfill" cx="16" cy="-1" r="9"/><circle class="ln" cx="16" cy="-1" r="9"/>
+          <circle cx="19.5" cy="-3.5" r="1.3" fill="var(--text)"/><path class="fx" d="M17 2.5 q3 2.5 6 0"/>
+        </g>
         <g class="win ahh"><rect x="70" y="10" width="36" height="17" rx="8" fill="var(--surface)" stroke="var(--muted)"/><text class="say" x="76" y="22" style="font-style:normal">Ahh!</text></g>
       </svg>
       <figcaption>${cap}</figcaption>
@@ -808,7 +958,10 @@ function rate(r) {
   if (s.mode === 'exam') return advance(); // exam mode: ratings change nothing
   if (s.mode === 'review') schedule(c, r);
   record(c, r);
-  if (s.mode === 'daily' && r >= 2) { const d = daily(); if (!d.known.includes(c.id)) d.known.push(c.id); }
+  if (s.mode === 'daily' && r >= 2) {
+    const d = daily(); if (!d.known.includes(c.id)) d.known.push(c.id);
+    if (d.known.length >= d.ids.length) completeDaily();
+  }
   save();
   s.done++;
   if (r <= 1) { s.again++; s.queue.splice(Math.min(s.i + 4, s.queue.length), 0, c.id); } // Hard: comes back a few cards later
@@ -949,6 +1102,7 @@ app.addEventListener('click', e => {
     case 'exit-study': exitStudy(); break;
     case 'study-daily': startStudy('daily'); break;
     case 'stat-filter': state.statFilter = state.statFilter === el.dataset.k ? null : el.dataset.k; render(); break;
+    case 'close-celebrate': state.celebrate = null; render(); break;
     case 'reset-daily':
       if (confirm('Start today’s daily challenge over with a new set of words?')) {
         db.daily = null; daily(); save(); render(); toast('Daily challenge reset');
@@ -1024,6 +1178,7 @@ app.addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (state.celebrate) { if (e.key === 'Escape') { state.celebrate = null; render(); } return; }
   if (state.view !== 'study' || e.metaKey || e.ctrlKey || e.altKey) return;
   const t = e.target instanceof Element ? e.target : document.body;
   if (t.matches('input, textarea, select')) return;
