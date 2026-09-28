@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elena’s Flashcards</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --surface: #ffffff; --surface-2: #faf8f4; --text: #1f2328; --muted: #6b7280;
+    --border: #e3dfd6; --accent: #3b6e5a; --accent-hover: #325e4d; --accent-text: #ffffff;
+    --danger: #b42318; --again: #c2410c; --hard: #b45309; --good: #3b6e5a; --easy: #2563eb;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15171b; --surface: #1f2228; --surface-2: #1a1d22; --text: #e8e6e3; --muted: #9aa0a8;
+      --border: #2e323a; --accent: #6fb393; --accent-hover: #82c3a4; --accent-text: #0f1512;
+      --danger: #f07167; --again: #f08a5d; --hard: #e0a44a; --good: #6fb393; --easy: #7aa7f5;
+      --shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 760px; margin: 0 auto; padding: 24px 16px 24px; }
+  #savebar { max-width: 760px; margin: 0 auto; padding: 0 16px 40px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+  h1 { font-size: 1.75rem; margin: 0; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .muted { color: var(--muted); }
+  .small { font-size: .875rem; }
+  code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 20px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  nav { display: flex; justify-content: space-between; align-items: center; min-height: 32px; }
+
+  .btn {
+    font: inherit; font-weight: 600; font-size: .95rem; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    padding: 9px 16px; border-radius: 10px; transition: background .15s, border-color .15s;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--muted); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .btn.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.ghost { background: transparent; }
+  .btn.danger { color: var(--danger); }
+  .btn.small { padding: 6px 12px; font-size: .875rem; }
+  .btn.big { width: 100%; padding: 14px; font-size: 1.05rem; }
+  .link { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 4px 0; font-weight: 600; }
+  .icon { font: inherit; font-size: .8rem; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+  .icon:hover { background: var(--surface-2); color: var(--text); }
+  .icon.danger:hover { color: var(--danger); }
+
+  input, textarea, select {
+    font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; width: 100%;
+  }
+  textarea { resize: vertical; }
+  select { width: auto; padding: 6px 10px; }
+  input:focus, textarea:focus, select:focus, .flip:focus-visible, .btn:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .row-form { display: flex; gap: 8px; margin-bottom: 20px; }
+  .row-form input { flex: 1; }
+  .card-form { display: grid; gap: 8px; }
+  .card-form .btn { justify-self: start; }
+
+  .list { display: grid; gap: 8px; }
+  .deck-row {
+    font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    box-shadow: var(--shadow); transition: border-color .15s, transform .15s;
+  }
+  .deck-row:hover { border-color: var(--accent); }
+  .deck-name { font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .deck-meta { color: var(--muted); font-size: .9rem; white-space: nowrap; }
+  .due { color: var(--accent); }
+  .empty { text-align: center; padding: 40px 16px; border: 1px dashed var(--border); border-radius: 14px; }
+  .empty p { margin: 4px 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .stats > * { background: var(--surface-2); border-radius: 10px; padding: 10px; text-align: center; }
+  .stats button { font: inherit; color: inherit; border: 2px solid transparent; cursor: pointer; }
+  .stats button:hover { border-color: var(--border); }
+  .stats button[aria-pressed="true"] { border-color: var(--accent); }
+  .stats b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .stats span { color: var(--muted); font-size: .85rem; }
+  .study-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .study-actions .btn { flex: 1; min-width: 150px; }
+  .dir { font-size: .9rem; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
+
+  details { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+  details textarea { font-family: ui-monospace, Menlo, monospace; font-size: .9rem; }
+  .bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .bulk-bar .spacer { flex: 1; }
+  .bulk-bar label { font-size: .9rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+
+  .list-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .list-head h2 { margin: 0; }
+  .list-head input { max-width: 220px; padding: 6px 10px; }
+  .card-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+  .card-row:first-child { border-top: 0; }
+  .card-row.editing { display: grid; gap: 8px; }
+  .cr-text { min-width: 0; }
+  .cr-front { font-weight: 600; overflow-wrap: anywhere; }
+  .cr-back { color: var(--muted); font-size: .92rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .cr-side { display: flex; align-items: flex-start; gap: 2px; flex-shrink: 0; }
+  .cr-side .tag { font-size: .78rem; color: var(--muted); padding: 4px 6px; white-space: nowrap; }
+  .row-actions { display: flex; gap: 8px; }
+
+  .progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 8px 0 4px; }
+  .progress div { height: 100%; background: var(--accent); transition: width .3s; }
+  .progress.tall { height: 10px; border-radius: 5px; margin: 0 0 14px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .panel-head h2 { margin: 0; }
+  .panel p { margin: 0 0 12px; }
+  .skip-row { text-align: center; margin-top: 8px; }
+  .flip { perspective: 1400px; cursor: pointer; margin: 16px 0; border-radius: 18px; }
+  .flip-inner { position: relative; height: min(58vh, 400px); min-height: 240px; transition: transform .5s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d; }
+  .flip-inner.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center; overflow: auto;
+  }
+  .face.back { transform: rotateY(180deg); background: var(--surface-2); }
+  .face-label { position: absolute; top: 14px; left: 18px; right: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .face-text { font-size: 2.1rem; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 100%; }
+  .face-text.md { font-size: 1.5rem; }
+  .face-text.sm { font-size: 1.15rem; font-weight: 500; }
+  .face-text.xs { font-size: 1rem; font-weight: 400; text-align: left; }
+  .hint { position: absolute; bottom: 14px; font-size: .8rem; color: var(--muted); }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .controls .btn { flex: 1; }
+  .rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rate .btn { padding: 10px 4px; display: flex; flex-direction: column; align-items: center; line-height: 1.25; }
+  .rate .btn small { font-weight: 400; color: var(--muted); font-size: .78rem; }
+  .rate .hard { color: var(--hard); }
+  .rate .good { color: var(--good); } .rate .easy { color: var(--easy); }
+  .keys { text-align: center; margin-top: 12px; }
+  .done { text-align: center; padding: 48px 16px; }
+  .done .big-emoji { font-size: 3rem; }
+  .done .actions { justify-content: center; margin-top: 20px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 10px;
+    font-size: .92rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    max-width: calc(100% - 32px); text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .hidden { display: none !important; }
+
+  /* deck results */
+  .panel h3 { font-size: .95rem; margin: 20px 0 8px; }
+  .rt::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: 1px; }
+  .rt.hard::before { background: var(--hard); }
+  .rt.good::before { background: var(--good); } .rt.easy::before { background: var(--easy); }
+  .chart { display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid var(--border); }
+  .day { flex: 1; height: 100%; display: flex; align-items: flex-end; border-radius: 4px; outline-offset: 2px; cursor: default; }
+  .day:hover, .day:focus-visible { background: var(--surface-2); }
+  .bar { width: 100%; min-height: 3px; display: flex; flex-direction: column-reverse; gap: 2px; border-radius: 4px 4px 0 0; overflow: hidden; }
+  .seg { display: block; min-height: 2px; }
+  .seg.right, .sw.right { background: var(--good); }
+  .seg.miss, .sw.miss { background: repeating-linear-gradient(135deg, var(--again) 0 3px, color-mix(in srgb, var(--again) 55%, var(--surface)) 3px 5px); }
+  .chart-x { display: flex; justify-content: space-between; margin: 4px 0 6px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 0 4px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  #day-readout { min-height: 1.3em; margin: 0; }
+  .word-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+  .word-list li { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; background: var(--surface-2); border-radius: 10px; padding: 8px 12px; }
+  .word-list .w { font-weight: 600; } .word-list .d { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+  .word-list .n { color: var(--muted); font-size: .8rem; white-space: nowrap; }
+  .word-list.scroll { max-height: 340px; overflow-y: auto; }
+  .word-list .ok { color: var(--good); font-weight: 600; }
+  details.daily-words { margin-top: 14px; }
+  details.daily-words .word-list { margin-top: 10px; }
+
+  /* daily challenge + toilet buddy */
+  .daily-row { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+  .daily-row .panel { flex: 1; min-width: 0; margin: 0; }
+  .loo { flex: none; width: 128px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .loo svg { display: block; width: 100%; height: auto; aspect-ratio: 130 / 150; overflow: visible; }
+  .loo figcaption { font-size: .78rem; color: var(--muted); text-align: center; }
+  .loo .ln { fill: none; stroke: var(--text); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .loo .fx { fill: none; stroke: var(--text); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .loo .porc { fill: var(--surface); stroke: var(--muted); stroke-width: 2; }
+  .loo .headfill { fill: var(--surface); }
+  .loo .flush { fill: #e5484d; opacity: calc(var(--s) * .55); }
+  .loo .poo { fill: #8b5a2b; }
+  .loo .drop { fill: #5aa9e6; }
+  .loo .say { font: italic 700 10px system-ui, sans-serif; fill: var(--muted); }
+  .loo .face-strain, .loo .face-done, .loo .sweat, .loo .hnng, .loo .win { display: none; }
+  .loo.is-strain .face-calm, .loo.is-done .face-calm { display: none; }
+  .loo.is-strain .face-strain, .loo.is-done .face-done, .loo.is-done .win { display: inline; }
+  .loo.is-sweaty .sweat, .loo.is-hnngy .hnng { display: inline; }
+  .loo .guy { transform-box: view-box; transform-origin: 54px 90px; }
+  .loo.is-strain .guy { animation: loo-shake calc(.7s - .5s * var(--s)) linear infinite; }
+  .loo .sweat path { animation: loo-drip 1.4s ease-in infinite; } .loo .sweat path + path { animation-delay: .7s; }
+  .loo.is-hnngy .hnng { animation: loo-pulse .8s ease-in-out infinite; }
+  .loo .poo-g { animation: loo-drop .7s cubic-bezier(.5, 0, .8, .4) .4s both; }
+  .loo .splash { animation: loo-splash .6s ease-out 1.05s both; }
+  .loo .ahh { animation: loo-pop .4s ease-out 1.3s both; transform-box: fill-box; transform-origin: center; }
+  @keyframes loo-shake { 0%, 100% { transform: translateX(0) } 25% { transform: translateX(calc(-.4px - 1.6px * var(--s))) rotate(calc(-1deg * var(--s))) } 75% { transform: translateX(calc(.4px + 1.6px * var(--s))) } }
+  @keyframes loo-drip { 0% { transform: translateY(0); opacity: 0 } 20% { opacity: 1 } 100% { transform: translateY(14px); opacity: 0 } }
+  @keyframes loo-pulse { 50% { opacity: .35 } }
+  @keyframes loo-drop { from { transform: translateY(-22px) } to { transform: translateY(0) } }
+  @keyframes loo-splash { 0% { transform: translateY(6px); opacity: 0 } 40% { opacity: 1 } 100% { transform: translateY(-8px); opacity: 0 } }
+  @keyframes loo-pop { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+  @media (max-width: 520px) {
+    .loo { width: 92px; }
+    h1 { font-size: 1.45rem; }
+    .row-form { flex-direction: column; }
+    .face-text { font-size: 1.7rem; }
+    .rate .btn { font-size: .85rem; }
+    .list-head input { max-width: 140px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .flip-inner, .progress div, #toast { transition: none; }
+    .loo * { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<footer id="savebar">
+  <span id="save-status" class="muted small">Autosaves every 3 min</span>
+  <button class="btn ghost small" id="save-now" title="Save now (Ctrl/Cmd+S)">Save now</button>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="file-json" accept=".json,application/json" class="hidden">
+<input type="file" id="file-list" accept=".csv,.txt,.tsv,text/csv,text/plain" class="hidden">
+
+<script>
+/* ---------- storage ---------- */
+const KEY = 'elena-flashcards-v1';
+const DAY = 86400000;
+let db = { decks: [], cards: [], settings: { dir: 'fw' }, daily: null, log: {} };
+
+function load() {
+  try {
+    const s = localStorage.getItem(KEY);
+    if (s) {
+      const d = JSON.parse(s);
+      db = { decks: d.decks || [], cards: (d.cards || []).map(normCard), settings: { dir: 'fw', ...(d.settings || {}) }, daily: d.daily || null, log: d.log || {} };
+    }
+  } catch (e) { /* start empty */ }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); showSaved(); return true; }
+  catch (e) { toast('Could not save in this browser. Export a backup!'); return false; }
+}
+
+// Unfinished typing (add/edit fields, pasted list) and the open deck, so nothing is lost on close
+const DRAFT_KEY = KEY + '-draft';
+const AUTOSAVE_MS = 3 * 60 * 1000;
+function saveDraft() {
+  const deckOpen = state.view === 'deck' || (state.view === 'study' && state.study.from === 'deck');
+  const d = { view: deckOpen ? 'deck' : 'home', deckId: state.deckId, bulkText: state.bulkText, sep: state.sep,
+    bulkOpen: state.bulkOpen, add: state.add, editingId: state.editingId, edit: state.edit };
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch (e) { /* the cards themselves are saved by save() */ }
+}
+function loadDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT_KEY));
+    if (!d) return;
+    Object.assign(state, { bulkText: String(d.bulkText || ''), sep: d.sep || 'auto', bulkOpen: !!d.bulkOpen,
+      add: { front: String(d.add?.front || ''), back: String(d.add?.back || '') } });
+    if (d.view === 'deck' && deck(d.deckId)) {
+      state.view = 'deck'; state.deckId = d.deckId;
+      if (d.editingId && card(d.editingId)) { state.editingId = d.editingId; state.edit = d.edit?.id === d.editingId ? d.edit : null; }
+    }
+  } catch (e) { /* no draft */ }
+}
+function saveAll(manual) {
+  const ok = save(); saveDraft();
+  if (manual && ok) toast('All cards and unfinished edits saved');
+}
+function showSaved() {
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = `Saved at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · autosaves every 3 min`;
+}
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const deck = id => db.decks.find(d => d.id === id);
+const card = id => db.cards.find(c => c.id === id);
+const cardsOf = deckId => db.cards.filter(c => c.deckId === deckId);
+const isDue = (c, now = Date.now()) => c.due <= now;
+
+function newCard(deckId, front, back) {
+  return { id: uid(), deckId, front, back, created: Date.now(), due: Date.now(), interval: 0, ease: 2.5, reps: 0, lapses: 0, r: [0, 0, 0, 0] };
+}
+function normCard(c) {
+  return {
+    id: String(c.id), deckId: String(c.deckId), front: String(c.front ?? ''), back: String(c.back ?? ''),
+    created: +c.created || Date.now(), due: +c.due || Date.now(), interval: +c.interval || 0,
+    ease: +c.ease || 2.5, reps: +c.reps || 0, lapses: +c.lapses || 0,
+    // answers so far as [Again, Hard, Good, Easy], from every kind of test; older saves are seeded from their miss counts
+    r: Array.isArray(c.r) && c.r.length === 4 ? c.r.map(x => +x || 0)
+      : [(+c.lapses || 0) + Math.round(+c.pMiss || 0), 0, (+c.reps || 0) + Math.max(0, (+c.pSeen || 0) - Math.round(+c.pMiss || 0)), 0],
+  };
+}
+
+/* ---------- scheduling ---------- */
+const startOfDay = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+
+// r: 1 = Hard (again in this session), 2 = Good (tomorrow), 3 = Easy (in 3 days).
+// 0 = Again only appears in older saves and is treated like Hard.
+const GAP = [0, 0, 1, 3];
+function schedule(c, r, now = Date.now()) {
+  c.interval = GAP[r];
+  if (r <= 1) { c.lapses++; c.reps = 0; c.due = now; }
+  else { c.reps++; c.due = startOfDay(now) + c.interval * DAY; }
+  return c;
+}
+function fmtDays(d) {
+  if (d < 1) return 'now';
+  if (d === 1) return '1 day';
+  if (d < 30) return d + ' days';
+  if (d < 365) return +(d / 30).toFixed(1) + ' mo';
+  return +(d / 365).toFixed(1) + ' yr';
+}
+const relDays = t => Math.round((startOfDay(t) - startOfDay(Date.now())) / DAY);
+/* ---------- practice: daily challenge & random tests (never change the review schedule) ---------- */
+const DAILY_SIZE = 30;
+const todayStr = () => new Date().toLocaleDateString('sv'); // local YYYY-MM-DD
+const sum = a => a.reduce((x, y) => x + y, 0);
+const misses = c => c.r[0] + c.r[1]; // Hard (and the old Again) = missed
+// Share of misses, smoothed so an unseen card scores 0.5
+const weakness = c => (misses(c) + 1) / (sum(c.r) + 2);
+// Words missed more often than got right; 5% of the deck (at least 1)
+const troubleCards = cs => cs.filter(c => misses(c) >= 1 && weakness(c) > 0.5)
+  .sort((a, b) => weakness(b) - weakness(a) || misses(b) - misses(a))
+  .slice(0, Math.max(1, Math.round(cs.length * 0.05)));
+
+function record(c, r) {
+  c.r[r]++;
+  const L = db.log[c.deckId] ??= {};
+  (L[todayStr()] ??= [0, 0, 0, 0])[r]++;
+}
+const weakestFirst = cs => shuffle(cs.slice()).sort((a, b) => weakness(b) - weakness(a));
+
+// Today's 30 words, weakest first; fixed for the day, topped up if cards are added or deleted
+function daily() {
+  let d = db.daily;
+  if (!d || d.date !== todayStr()) d = db.daily = { date: todayStr(), ids: [], known: [] };
+  d.ids = d.ids.filter(id => card(id));
+  d.known = d.known.filter(id => d.ids.includes(id));
+  if (d.ids.length < DAILY_SIZE) {
+    const have = new Set(d.ids);
+    d.ids.push(...weakestFirst(db.cards.filter(c => !have.has(c.id))).slice(0, DAILY_SIZE - d.ids.length).map(c => c.id));
+  }
+  return d;
+}
+
+function dueLabel(c) {
+  if (c.reps === 0 && c.lapses === 0) return 'new';
+  if (isDue(c)) return 'due';
+  const d = relDays(c.due);
+  return d <= 1 ? 'tomorrow' : 'in ' + fmtDays(d);
+}
+
+/* ---------- parsing lists & CSV ---------- */
+const SEPS = { tab: '\t', dash: ' - ', colon: ':', semicolon: ';', comma: ',', equals: '=' };
+const AUTO_SEPS = ['\t', ' - ', ' – ', ' — ', ' = ', ': ', ':', ';', ','];
+
+function parseLines(text, sep) {
+  const pairs = []; let bad = 0;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const seps = sep === 'auto' ? AUTO_SEPS : [SEPS[sep]];
+    let pair = null;
+    for (const s of seps) {
+      const i = line.indexOf(s);
+      if (i > 0) { pair = [line.slice(0, i).trim(), line.slice(i + s.length).trim()]; break; }
+    }
+    if (pair && pair[0] && pair[1]) pairs.push(pair); else bad++;
+  }
+  return { pairs, bad };
+}
+
+function parseCSV(text) {
+  const first = text.split('\n')[0];
+  const delim = first.split(';').length > first.split(',').length ? ';' : ',';
+  const rows = []; let row = [], f = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim) { row.push(f); f = ''; }
+    else if (ch === '\n') { row.push(f); rows.push(row); row = []; f = ''; }
+    else if (ch !== '\r') f += ch;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  const clean = s => s.replace(/[\t\r\n]+/g, ' ').trim();
+  let out = rows.filter(r => r.length >= 2 && clean(r[0]) && clean(r[1])).map(r => [clean(r[0]), clean(r[1])]);
+  if (out.length && /^(word|term|front|question|wort|mot|palabra)$/i.test(out[0][0])) out = out.slice(1);
+  return out;
+}
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function sizeCls(t) { const n = t.length; return n > 220 ? 'xs' : n > 80 ? 'sm' : n > 24 ? 'md' : ''; }
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- state & rendering ---------- */
+const app = $('#app');
+const state = { view: 'home', deckId: null, editingId: null, search: '', bulkOpen: false, bulkText: '', sep: 'auto', study: null,
+  add: { front: '', back: '' }, edit: null };
+
+function render() {
+  if (state.view === 'deck' && !deck(state.deckId)) state.view = 'home';
+  if (state.view === 'study' && (!state.study || (state.study.from === 'deck' && !deck(state.deckId)))) state.view = 'home';
+  app.innerHTML = state.view === 'home' ? homeHTML() : state.view === 'deck' ? deckHTML() : studyHTML();
+  if (state.view === 'deck') { updatePreview(); applySearch(); }
+  if (state.view === 'study') { const f = $('.flip'); if (f) f.focus({ preventScroll: true }); }
+}
+
+function homeHTML() {
+  const now = Date.now();
+  const rows = db.decks.map(d => {
+    const cs = cardsOf(d.id), due = cs.filter(c => isDue(c, now)).length;
+    return `<button class="deck-row" data-action="open-deck" data-id="${d.id}">
+      <span class="deck-name">${esc(d.name)}</span>
+      <span class="deck-meta">${plural(cs.length, 'card')}${due ? ` · <b class="due">${due} due</b>` : ''}</span>
+    </button>`;
+  }).join('');
+  return `
+    <header class="top">
+      <h1>Elena’s Flashcards</h1>
+      <div class="actions">
+        <button class="btn ghost small" data-action="export" ${db.decks.length ? '' : 'disabled'}>Export backup</button>
+        <button class="btn ghost small" data-action="import">Import backup</button>
+      </div>
+    </header>
+    ${db.cards.length ? practiceHTML() : ''}
+    <form class="row-form" data-form="new-deck">
+      <input name="deckname" placeholder="New deck name, e.g. Spanish verbs" required maxlength="80" autocomplete="off">
+      <button class="btn primary">Create deck</button>
+    </form>
+    ${db.decks.length ? `<div class="list">${rows}</div>` : `
+      <div class="empty"><p><b>No decks yet.</b></p>
+      <p class="muted">Create your first deck above, then add words and their definitions.</p></div>`}
+    <p class="muted small" style="margin-top:24px">Cards are saved in this browser. Use <b>Export backup</b> now and then to keep a copy or move your cards to another device.</p>`;
+}
+
+function practiceHTML() {
+  const d = daily(), total = d.ids.length, known = d.known.length, complete = known >= total;
+  const n = db.cards.length, sizes = [10, 20, 50].filter(x => x < n);
+  return `
+    <div class="daily-row">
+    <section class="panel">
+      <div class="panel-head"><h2>Daily challenge</h2><span class="muted small">${known} / ${total} known${known ? ` · <button class="link small" data-action="reset-daily">Reset</button>` : ''}</span></div>
+      <div class="progress tall" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${known}"><div style="width:${total ? known / total * 100 : 0}%"></div></div>
+      ${complete
+        ? `<p class="muted small">🎉 Done for today. A new set of words is ready tomorrow.</p>`
+        : `<p class="muted small">${total} words from all decks, the ones you find hardest first. A word counts once you rate it Good or Easy.</p>
+           <button class="btn primary" data-action="study-daily">${known ? 'Continue' : 'Start'} daily challenge</button>`}
+      ${total ? `<details class="daily-words" data-daily-words ${state.dailyOpen ? 'open' : ''}>
+        <summary>${complete ? 'See today’s words' : 'Today’s words'} (${total})</summary>
+        <ul class="word-list scroll">${d.ids.map(id => {
+          const c = card(id), ok = d.known.includes(id);
+          return `<li><span><span class="w">${esc(c.front)}</span> <span class="d">${esc(c.back)}</span></span>
+            <span class="n">${esc(deck(c.deckId)?.name ?? '')} · ${ok ? '<span class="ok">known ✓</span>' : 'not yet'}</span></li>`;
+        }).join('')}</ul>
+      </details>` : ''}
+    </section>
+    ${looHTML(total ? known / total : 0, complete, known, total)}
+    </div>
+    <section class="panel">
+      <h2>Test random words</h2>
+      <p class="muted small">Cards drawn at random from all your decks.</p>
+      <div class="actions">
+        ${sizes.map(x => `<button class="btn" data-action="study-random" data-n="${x}">${x} cards</button>`).join('')}
+        ${n <= 50 ? `<button class="btn" data-action="study-random" data-n="${n}">All ${plural(n, 'card')}</button>` : ''}
+      </div>
+    </section>`;
+}
+
+// A stick figure on the toilet: strains harder as the daily challenge fills up, finally succeeds at 100%
+function looHTML(p, done, known, total) {
+  const cls = done ? 'is-done' : p > 0 ? `is-strain${p >= 1 / 3 ? ' is-sweaty' : ''}${p >= 2 / 3 ? ' is-hnngy' : ''}` : '';
+  const cap = done ? 'Relief!' : p > 0 ? `Pushing… ${known}/${total}` : 'Needs to go…';
+  return `
+    <figure class="loo ${cls}" style="--s:${done ? 0 : p.toFixed(2)}" role="img" aria-label="Stick figure on a toilet: ${cap}">
+      <svg viewBox="0 0 130 150" aria-hidden="true">
+        <defs><clipPath id="bowl-clip"><path d="M30 96 H88 Q88 122 66 127 H44 Q30 120 30 96 Z"/></clipPath></defs>
+        <rect class="porc" x="8" y="48" width="22" height="44" rx="4"/>
+        <path class="porc" d="M30 96 H88 Q88 122 66 127 L64 138 H44 L42 126 Q30 120 30 96 Z"/>
+        <rect class="porc" x="38" y="137" width="32" height="6" rx="2"/>
+        <g clip-path="url(#bowl-clip)" class="win"><g class="poo-g">
+          <path class="poo" d="M50 124 Q49 117 55 116 Q54 110 59 109 Q60 104 63 102 Q64 108 67 110 Q72 111 71 116 Q77 118 75 124 Z"/></g></g>
+        <g class="win splash"><path class="drop" d="M46 94 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/><path class="drop" d="M74 92 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/></g>
+        <rect class="porc" x="26" y="88" width="64" height="7" rx="3"/>
+        <g class="guy">
+          <path class="ln" d="M54 88 L50 57 M54 88 L84 86 L86 122 L96 122 M51 61 L65 74 L80 81"/>
+          <circle class="headfill" cx="52" cy="42" r="11"/><circle class="flush" cx="52" cy="42" r="11"/>
+          <circle class="ln" cx="52" cy="42" r="11"/>
+          <g class="face-calm"><circle cx="55" cy="40" r="1.4" fill="currentColor" style="color:var(--text)"/><circle cx="61" cy="40" r="1.4" fill="currentColor" style="color:var(--text)"/><path class="fx" d="M55 47 H61"/></g>
+          <g class="face-strain"><path class="fx" d="M52 37.5 L56 40 L52 42.5 M64 37.5 L60 40 L64 42.5"/><rect x="53" y="45" width="9" height="4" rx="1" fill="#fff" stroke="var(--text)" stroke-width="1.4"/><path class="fx" d="M53 47 H62"/></g>
+          <g class="face-done"><path class="fx" d="M52.5 41 Q54.5 38 56.5 41 M58.5 41 Q60.5 38 62.5 41 M54 46 Q58 51 62 46"/></g>
+          <g class="sweat"><path class="drop" d="M41 30 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/><path class="drop" d="M64 27 q2 -5 4 0 a2 2 0 0 1 -4 0Z"/></g>
+        </g>
+        <text class="say hnng" x="70" y="22">hnnng!</text>
+        <g class="win ahh"><rect x="70" y="10" width="36" height="17" rx="8" fill="var(--surface)" stroke="var(--muted)"/><text class="say" x="76" y="22" style="font-style:normal">Ahh!</text></g>
+      </svg>
+      <figcaption>${cap}</figcaption>
+    </figure>`;
+}
+
+function deckHTML() {
+  const d = deck(state.deckId), cs = cardsOf(d.id), now = Date.now();
+  const due = cs.filter(c => isDue(c, now)).length;
+  const learned = cs.filter(c => c.interval >= 3).length; // last rated Easy
+  const upcoming = cs.filter(c => !isDue(c, now)).map(c => c.due);
+  const next = upcoming.length ? relDays(Math.min(...upcoming)) : null;
+  const dir = db.settings.dir;
+  const sepOpt = (v, l) => `<option value="${v}" ${state.sep === v ? 'selected' : ''}>${l}</option>`;
+  return `
+    <nav><button class="link" data-action="home">← All decks</button></nav>
+    <header class="top">
+      <h1>${esc(d.name)}</h1>
+      <div class="actions">
+        <button class="btn ghost small" data-action="rename-deck">Rename</button>
+        <button class="btn ghost small danger" data-action="delete-deck">Delete</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="stats">
+        <div><b>${cs.length}</b><span>cards</span></div>
+        <div><b>${due}</b><span>due now</span></div>
+        <div><b>${learned}</b><span>learned</span></div>
+      </div>
+      <div class="study-actions">
+        <button class="btn primary" data-action="study-review" ${due ? '' : 'disabled'}>Review due cards${due ? ` (${due})` : ''}</button>
+        <button class="btn" data-action="study-browse" ${cs.length ? '' : 'disabled'}>Browse all</button>
+        <button class="btn" data-action="study-exam" ${cs.length ? '' : 'disabled'} title="Every word, round after round. Ratings change nothing.">Exam mode</button>
+      </div>
+      <label class="dir">Show first
+        <select data-setting="dir">
+          <option value="fw" ${dir === 'fw' ? 'selected' : ''}>Word → definition</option>
+          <option value="bw" ${dir === 'bw' ? 'selected' : ''}>Definition → word</option>
+        </select>
+      </label>
+      ${!due && cs.length ? `<p class="muted small" style="margin:10px 0 0">All caught up. Next review ${next <= 1 ? 'tomorrow' : 'in ' + fmtDays(next)}.</p>` : ''}
+    </section>
+
+    ${resultsHTML(cs)}
+
+    <section class="panel">
+      <h2>Add a card</h2>
+      <form class="card-form" data-form="add-card">
+        <input name="front" placeholder="Word" required autocomplete="off" value="${esc(state.add.front)}">
+        <textarea name="back" rows="2" placeholder="Definition  (Enter to add, Shift+Enter for a new line)" required>${esc(state.add.back)}</textarea>
+        <button class="btn primary">Add card</button>
+      </form>
+      <details data-bulk ${state.bulkOpen ? 'open' : ''}>
+        <summary>Add many at once: paste a list or import a CSV</summary>
+        <p class="muted small">One card per line, e.g. <code>casa - house</code>. Separators recognised: tab, “ - ”, “:”, “=”, “;” or “,”.</p>
+        <textarea id="bulk" rows="7" placeholder="casa - house&#10;perro - dog&#10;gato - cat">${esc(state.bulkText)}</textarea>
+        <div class="bulk-bar">
+          <label>Separator <select id="sep">
+            ${sepOpt('auto', 'Auto-detect')}${sepOpt('tab', 'Tab')}${sepOpt('dash', ' - ')}${sepOpt('colon', ':')}
+            ${sepOpt('equals', '=')}${sepOpt('semicolon', ';')}${sepOpt('comma', ',')}
+          </select></label>
+          <button type="button" class="btn ghost small" data-action="pick-file">Import CSV / text file…</button>
+          <span class="spacer"></span>
+          <span id="bulk-preview" class="muted small"></span>
+          <button type="button" class="btn primary small" data-action="bulk-add">Add cards</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel">
+      <div class="list-head">
+        <h2>Cards (${cs.length})</h2>
+        ${cs.length > 5 ? `<input id="search" type="search" placeholder="Search…" value="${esc(state.search)}">` : ''}
+      </div>
+      <div class="cards">${cs.length ? cs.slice().reverse().map(cardRow).join('') : '<p class="muted">No cards yet. Add some above.</p>'}</div>
+    </section>`;
+}
+
+// [key, label, times a card was rated that way]; old 'Again' answers count as Hard
+const RATED = [['hard', 'Hard', c => c.r[0] + c.r[1]], ['good', 'Good', c => c.r[2]], ['easy', 'Easy', c => c.r[3]]];
+
+function ratedListHTML(cs) {
+  const [, label, n] = RATED.find(([k]) => k === state.statFilter);
+  const ws = cs.filter(c => n(c) > 0).sort((a, b) => n(b) - n(a) || a.front.localeCompare(b.front));
+  return `<h3>Words rated ${label} (${ws.length})</h3>` + (ws.length
+    ? `<ul class="word-list scroll">${ws.map(c => `<li><span><span class="w">${esc(c.front)}</span> <span class="d">${esc(c.back)}</span></span>
+        <span class="n">${n(c)}×</span></li>`).join('')}</ul>`
+    : `<p class="muted small">No words rated ${label} yet.</p>`);
+}
+
+function resultsHTML(cs) {
+  const L = db.log[state.deckId] || {}, tot = [0, 0, 0, 0];
+  cs.forEach(c => c.r.forEach((x, i) => tot[i] += x)); // totals from the cards, so they match the word lists
+  const all = sum(tot), weak = troubleCards(cs), cap = Math.max(1, Math.round(cs.length * 0.05));
+  if (!all && !weak.length) return `
+    <section class="panel"><h2>Your results</h2>
+      <p class="muted small">No answers yet. Your results show up here once you study this deck. Reviews, the daily challenge and random tests all count.</p></section>`;
+  const days = [...Array(14)].map((_, k) => {
+    const t = new Date(); t.setDate(t.getDate() - 13 + k);
+    return { t, a: L[t.toLocaleDateString('sv')] || [0, 0, 0, 0] };
+  });
+  const max = Math.max(1, ...days.map(d => sum(d.a)));
+  const tip = ({ t, a }) => `${t.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}: ` + (sum(a)
+    ? `${plural(sum(a), 'answer')} · ${a[2] + a[3]} right, ${a[0] + a[1]} missed (Hard ${a[0] + a[1]}, Good ${a[2]}, Easy ${a[3]})`
+    : 'no answers');
+  const bar = d => {
+    const right = d.a[2] + d.a[3], miss = d.a[0] + d.a[1];
+    return `<div class="day" tabindex="0" data-tip="${esc(tip(d))}"><div class="bar" style="height:${sum(d.a) / max * 100}%">
+      ${right ? `<i class="seg right" style="flex:${right}"></i>` : ''}${miss ? `<i class="seg miss" style="flex:${miss}"></i>` : ''}</div></div>`;
+  };
+  return `
+    <section class="panel">
+      <div class="panel-head"><h2>Your results</h2>
+        <span class="muted small">${all ? `${Math.round((tot[2] + tot[3]) / all * 100)}% right · ${plural(all, 'answer')}` : ''}</span></div>
+      <div class="stats">
+        ${RATED.map(([k, label, n]) => `<button data-action="stat-filter" data-k="${k}" aria-pressed="${state.statFilter === k}"
+          title="Show the words you rated ${label}"><b>${sum(cs.map(n))}</b><span class="rt ${k}">${label}</span></button>`).join('')}
+      </div>
+      ${state.statFilter ? ratedListHTML(cs) : '<p class="muted small">Click Hard, Good or Easy to see those words.</p>'}
+      <div class="legend muted small"><span><i class="sw right"></i>Right (Good, Easy)</span><span><i class="sw miss"></i>Missed (Hard)</span></div>
+      <div class="chart" role="img" aria-label="Answers per day, last 14 days">${days.map(bar).join('')}</div>
+      <div class="chart-x muted small"><span>2 weeks ago</span><span>Today</span></div>
+      <p id="day-readout" class="muted small">${esc(tip(days[13]))}</p>
+
+      <h3>Words you keep missing</h3>
+      ${weak.length ? `
+        <ul class="word-list">${weak.map(c => `<li><span><span class="w">${esc(c.front)}</span> <span class="d">${esc(c.back)}</span></span>
+          <span class="n">missed ${c.r[0] + c.r[1]} of ${sum(c.r)}</span></li>`).join('')}</ul>
+        <button class="btn small" data-action="study-weak">Practise ${weak.length > 1 ? `these ${weak.length}` : 'this word'}</button>`
+      : `<p class="muted small">None right now. A word shows up here (up to ${plural(cap, 'word')}, 5% of this deck) when you miss it more often than you get it right.</p>`}
+    </section>`;
+}
+
+function cardRow(c) {
+  if (state.editingId === c.id) {
+    const e = state.edit?.id === c.id ? state.edit : c;
+    return `
+    <form class="card-row editing" data-form="edit-card" data-id="${c.id}">
+      <input name="front" value="${esc(e.front)}" required>
+      <textarea name="back" rows="2" required>${esc(e.back)}</textarea>
+      <div class="row-actions">
+        <button class="btn primary small">Save</button>
+        <button type="button" class="btn ghost small" data-action="cancel-edit">Cancel</button>
+      </div>
+    </form>`;
+  }
+  return `
+    <div class="card-row" data-search="${esc((c.front + ' ' + c.back).toLowerCase())}">
+      <div class="cr-text"><div class="cr-front">${esc(c.front)}</div><div class="cr-back">${esc(c.back)}</div></div>
+      <div class="cr-side">
+        <span class="tag">${dueLabel(c)}</span>
+        <button class="icon" data-action="edit-card" data-id="${c.id}">Edit</button>
+        <button class="icon danger" data-action="delete-card" data-id="${c.id}">Delete</button>
+      </div>
+    </div>`;
+}
+
+const rated = s => s.mode !== 'browse';
+
+function studyHTML() {
+  const s = state.study, d = deck(state.deckId), home = s.from === 'home';
+  const left = s.queue.length - s.i + s.skipped.length;
+  const dl = s.mode === 'daily' ? daily() : null;
+  const info = s.mode === 'browse' ? `${s.i + 1} / ${s.queue.length}`
+    : s.mode === 'exam' ? `Exam mode · round ${s.round} · ${left} left` + (s.skipped.length ? ` · ${s.skipped.length} skipped` : '')
+    : (dl ? `${dl.known.length} / ${dl.ids.length} known · ` : '') + `${left} left` + (s.skipped.length ? ` · ${s.skipped.length} skipped` : '');
+  const nav = `<nav><button class="link" data-action="exit-study">← ${home ? 'All decks' : esc(d.name)}</button>
+    <span class="muted small">${info}</span></nav>`;
+
+  if (dl && s.i >= s.queue.length) return `${nav}<div class="done">
+      <div class="big-emoji">🎉</div>
+      <h1>${dl.known.length >= dl.ids.length ? 'Daily challenge complete!' : 'Session finished'}</h1>
+      <p class="muted">You know ${dl.known.length} of today’s ${dl.ids.length} words. New words tomorrow.</p>
+      <div class="actions"><button class="btn primary" data-action="exit-study">Back to all decks</button></div></div>`;
+
+  if ((s.mode === 'random' || s.mode === 'weak') && s.i >= s.queue.length) return `${nav}<div class="done">
+      <div class="big-emoji">🎉</div>
+      <h1>${s.mode === 'weak' ? 'Practice finished' : 'Test finished'}</h1>
+      <p class="muted">You answered ${plural(s.done, 'card')}${s.again ? `, with ${s.again} to practise again` : ''}.</p>
+      <div class="actions">
+        ${s.mode === 'random' ? `<button class="btn primary" data-action="study-random" data-n="${s.n}">Another ${s.n} cards</button>`
+          : troubleCards(cardsOf(state.deckId)).length ? `<button class="btn primary" data-action="study-weak">Practise the missed words again</button>` : ''}
+        <button class="btn" data-action="exit-study">Back to ${home ? 'all decks' : esc(d.name)}</button>
+      </div></div>`;
+
+  if (s.mode === 'review' && s.i >= s.queue.length) {
+    const upcoming = cardsOf(d.id).map(c => c.due).filter(t => t > Date.now());
+    const next = upcoming.length ? relDays(Math.min(...upcoming)) : null;
+    return `${nav}<div class="done">
+      <div class="big-emoji">🎉</div>
+      <h1>Well done!</h1>
+      <p class="muted">You reviewed ${plural(s.done, 'card')}${s.again ? `, with ${s.again} to practise again` : ''}.
+      ${next !== null ? `<br>Next review ${next <= 1 ? 'tomorrow' : 'in ' + fmtDays(next)}.` : ''}</p>
+      <div class="actions">
+        <button class="btn primary" data-action="exit-study">Back to deck</button>
+        <button class="btn" data-action="study-browse">Browse all cards</button>
+      </div></div>`;
+  }
+
+  const c = card(s.queue[s.i]);
+  const fw = db.settings.dir === 'fw';
+  const q = fw ? c.front : c.back, a = fw ? c.back : c.front;
+  const pct = rated(s) ? ((s.i - s.roundStart) / (s.queue.length - s.roundStart + s.skipped.length)) * 100 : ((s.i + 1) / s.queue.length) * 100;
+  const from = home ? ` · ${esc(deck(c.deckId)?.name ?? '')}` : '';
+  return `${nav}
+    <div class="progress"><div style="width:${pct}%"></div></div>
+    <div class="flip" data-action="flip" tabindex="0" aria-label="Flashcard, press space to flip">
+      <div class="flip-inner ${s.flipped ? 'flipped' : ''}">
+        <div class="face front"><span class="face-label">${fw ? 'Word' : 'Definition'}${from}</span>
+          <div class="face-text ${sizeCls(q)}">${esc(q)}</div><span class="hint">Tap to flip</span></div>
+        <div class="face back"><span class="face-label">${fw ? 'Definition' : 'Word'}${from}</span>
+          <div class="face-text ${sizeCls(a)}">${esc(a)}</div></div>
+      </div>
+    </div>
+    <div id="controls">${controlsHTML()}</div>`;
+}
+
+function controlsHTML() {
+  const s = state.study;
+  if (s.mode === 'browse') return `
+    <div class="controls">
+      <button class="btn" data-action="prev">← Prev</button>
+      <button class="btn" data-action="shuffle">Shuffle</button>
+      <button class="btn primary" data-action="next">Next →</button>
+    </div>
+    <p class="keys muted small">Space = flip · ← → = previous / next</p>`;
+  if (!s.flipped) return `
+    <div class="controls">
+      <button class="btn" data-action="skip">Skip</button>
+      <button class="btn primary" data-action="flip">Show answer</button>
+    </div>
+    <p class="keys muted small">Space = show answer · S = skip (skipped cards come back at the end)</p>`;
+  const c = card(s.queue[s.i]);
+  // Review shows when the card comes back; practice modes don't touch the schedule
+  const iv = s.mode === 'review' ? r => ['', 'again soon', 'tomorrow', 'in 3 days'][r]
+    : s.mode === 'daily' ? r => ['', 'again soon', 'known ✓', 'known ✓'][r]
+    : s.mode === 'exam' ? r => ['', 'no effect', 'no effect', 'no effect'][r]
+    : r => ['', 'again soon', 'got it', 'got it'][r];
+  return `
+    <div class="rate">
+      <button class="btn hard" data-action="rate" data-r="1">Hard<small>${iv(1)}</small></button>
+      <button class="btn good" data-action="rate" data-r="2">Good<small>${iv(2)}</small></button>
+      <button class="btn easy" data-action="rate" data-r="3">Easy<small>${iv(3)}</small></button>
+    </div>
+    <div class="skip-row"><button class="link" data-action="skip">Skip for now</button></div>
+    <p class="keys muted small">Keys 1–3 to rate · S = skip${s.mode === 'exam' ? ' · every word keeps coming back, round after round' : ' · Hard = see it again in this session'}</p>`;
+}
+
+/* ---------- actions ---------- */
+// mode: 'review' / 'browse' / 'weak' / 'exam' (one deck) · 'daily' / 'random' (all decks). Only 'review' changes the schedule
+function startStudy(mode, n) {
+  let queue, from = 'deck';
+  if (mode === 'review') queue = shuffle(cardsOf(state.deckId).filter(c => isDue(c)).map(c => c.id));
+  else if (mode === 'browse') queue = cardsOf(state.deckId).map(c => c.id);
+  else if (mode === 'exam') queue = examRound();
+  else if (mode === 'weak') queue = shuffle(troubleCards(cardsOf(state.deckId)).map(c => c.id));
+  else if (mode === 'random') { queue = shuffle(db.cards.map(c => c.id)).slice(0, n); from = 'home'; }
+  else { const d = daily(); save(); queue = shuffle(d.ids.filter(id => !d.known.includes(id))); from = 'home'; }
+  if (!queue.length) return;
+  state.study = { mode, from, n, queue, i: 0, flipped: false, done: 0, again: 0, skipped: [], round: 1, roundStart: 0 };
+  state.view = 'study';
+  render();
+}
+
+function flip() {
+  const s = state.study;
+  if (!s || (rated(s) && s.i >= s.queue.length)) return;
+  s.flipped = !s.flipped;
+  $('.flip-inner').classList.toggle('flipped', s.flipped);
+  $('#controls').innerHTML = controlsHTML();
+}
+
+function move(step) {
+  const s = state.study, n = s.queue.length;
+  s.i = (s.i + step + n) % n; s.flipped = false;
+  render();
+}
+
+function rate(r) {
+  const s = state.study, c = card(s.queue[s.i]);
+  if (s.mode === 'exam') return advance(); // exam mode: ratings change nothing
+  if (s.mode === 'review') schedule(c, r);
+  record(c, r);
+  if (s.mode === 'daily' && r >= 2) { const d = daily(); if (!d.known.includes(c.id)) d.known.push(c.id); }
+  save();
+  s.done++;
+  if (r <= 1) { s.again++; s.queue.splice(Math.min(s.i + 4, s.queue.length), 0, c.id); } // Hard: comes back a few cards later
+  advance();
+}
+
+function skip() {
+  const s = state.study;
+  if (!s || !rated(s) || s.i >= s.queue.length) return;
+  s.skipped.push(s.queue[s.i]);
+  advance();
+}
+
+// Next card; when the queue runs out, the skipped cards come back. Exam mode then starts a new round
+function advance() {
+  const s = state.study;
+  s.i++; s.flipped = false;
+  if (s.i >= s.queue.length && s.skipped.length) {
+    toast(`Back to the ${plural(s.skipped.length, 'card')} you skipped`);
+    s.queue.push(...s.skipped); s.skipped = [];
+  } else if (s.i >= s.queue.length && s.mode === 'exam') {
+    const next = examRound(s.queue[s.i - 1]);
+    if (next.length) { s.queue.push(...next); s.roundStart = s.i; s.round++; toast(`Round ${s.round}: all words again`); }
+  }
+  render();
+}
+
+// Every word in the deck, shuffled, not starting with the word just shown
+function examRound(last) {
+  const ids = shuffle(cardsOf(state.deckId).map(c => c.id));
+  if (ids.length > 1 && ids[0] === last) ids.push(ids.shift());
+  return ids;
+}
+
+function updatePreview() {
+  const el = $('#bulk-preview'), ta = $('#bulk');
+  if (!el || !ta) return;
+  if (!ta.value.trim()) { el.textContent = ''; return; }
+  const { pairs, bad } = parseLines(ta.value, state.sep);
+  el.textContent = `${plural(pairs.length, 'card')} found` + (bad ? ` · ${plural(bad, 'line')} not understood` : '');
+}
+
+function applySearch() {
+  const q = state.search.trim().toLowerCase();
+  document.querySelectorAll('.card-row[data-search]').forEach(r => r.classList.toggle('hidden', !!q && !r.dataset.search.includes(q)));
+}
+
+function bulkAdd() {
+  const { pairs } = parseLines($('#bulk').value, state.sep);
+  if (!pairs.length) { toast('No cards found. Check the separator.'); return; }
+  const existing = new Set(cardsOf(state.deckId).map(c => c.front.trim().toLowerCase()));
+  let added = 0, skipped = 0;
+  for (const [f, b] of pairs) {
+    const k = f.toLowerCase();
+    if (existing.has(k)) { skipped++; continue; }
+    existing.add(k); db.cards.push(newCard(state.deckId, f, b)); added++;
+  }
+  save();
+  state.bulkText = '';
+  render();
+  toast(`Added ${plural(added, 'card')}` + (skipped ? `, skipped ${plural(skipped, 'duplicate')}` : ''));
+}
+
+function exportData() {
+  const data = { app: 'elena-flashcards', version: 1, exported: new Date().toISOString(), ...db };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = `elena-flashcards-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Backup downloaded');
+}
+
+async function importData(file) {
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.decks) || !Array.isArray(data.cards)) throw new Error();
+    const deckIds = new Set(db.decks.map(d => d.id)), cardIds = new Set(db.cards.map(c => c.id));
+    let nd = 0, nc = 0;
+    for (const d of data.decks) {
+      if (d && d.id && !deckIds.has(String(d.id))) {
+        db.decks.push({ id: String(d.id), name: String(d.name || 'Untitled'), created: +d.created || Date.now() });
+        deckIds.add(String(d.id)); nd++;
+      }
+    }
+    for (const c of data.cards) {
+      if (c && c.id && !cardIds.has(String(c.id)) && deckIds.has(String(c.deckId))) {
+        db.cards.push(normCard(c)); cardIds.add(String(c.id)); nc++;
+      }
+    }
+    save(); render();
+    toast(`Imported ${plural(nd, 'deck')} and ${plural(nc, 'card')}`);
+  } catch (e) { toast('That file is not a valid flashcards backup'); }
+}
+
+function exitStudy() {
+  state.view = state.study?.from === 'home' ? 'home' : 'deck'; state.study = null;
+  render(); window.scrollTo(0, 0);
+}
+
+/* ---------- events ---------- */
+app.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const a = el.dataset.action, id = el.dataset.id;
+  const d = deck(state.deckId);
+  switch (a) {
+    case 'home': state.view = 'home'; state.search = ''; state.editingId = null; render(); break;
+    case 'open-deck': state.view = 'deck'; state.deckId = id; state.search = ''; state.editingId = null; state.statFilter = null; render(); window.scrollTo(0, 0); break;
+    case 'export': exportData(); break;
+    case 'import': $('#file-json').click(); break;
+    case 'rename-deck': {
+      const name = prompt('New name for this deck:', d.name);
+      if (name && name.trim()) { d.name = name.trim().slice(0, 80); save(); render(); }
+      break;
+    }
+    case 'delete-deck': {
+      const n = cardsOf(d.id).length;
+      if (confirm(`Delete “${d.name}” and its ${plural(n, 'card')}? This cannot be undone.`)) {
+        db.cards = db.cards.filter(c => c.deckId !== d.id);
+        db.decks = db.decks.filter(x => x.id !== d.id);
+        delete db.log[d.id];
+        save(); state.view = 'home'; render(); toast('Deck deleted');
+      }
+      break;
+    }
+    case 'edit-card': state.editingId = id; state.edit = null; render(); { const f = app.querySelector('[data-form="edit-card"] input'); f && f.focus(); } break;
+    case 'cancel-edit': state.editingId = null; state.edit = null; render(); break;
+    case 'delete-card': {
+      const c = card(id);
+      if (confirm(`Delete the card “${c.front}”?`)) { db.cards = db.cards.filter(x => x.id !== id); save(); render(); }
+      break;
+    }
+    case 'pick-file': $('#file-list').click(); break;
+    case 'bulk-add': bulkAdd(); break;
+    case 'study-review': startStudy('review'); break;
+    case 'study-browse': startStudy('browse'); break;
+    case 'exit-study': exitStudy(); break;
+    case 'study-daily': startStudy('daily'); break;
+    case 'stat-filter': state.statFilter = state.statFilter === el.dataset.k ? null : el.dataset.k; render(); break;
+    case 'reset-daily':
+      if (confirm('Start today’s daily challenge over with a new set of words?')) {
+        db.daily = null; daily(); save(); render(); toast('Daily challenge reset');
+      }
+      break;
+    case 'study-random': startStudy('random', +el.dataset.n); break;
+    case 'skip': skip(); break;
+    case 'study-weak': startStudy('weak'); break;
+    case 'study-exam': startStudy('exam'); break;
+    case 'flip': flip(); break;
+    case 'prev': move(-1); break;
+    case 'next': move(1); break;
+    case 'shuffle': shuffle(state.study.queue); state.study.i = 0; state.study.flipped = false; render(); toast('Shuffled'); break;
+    case 'rate': rate(+el.dataset.r); break;
+  }
+});
+
+app.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, kind = f.dataset.form;
+  if (kind === 'new-deck') {
+    const name = f.deckname.value.trim();
+    if (!name) return;
+    const d = { id: uid(), name: name.slice(0, 80), created: Date.now() };
+    db.decks.push(d); save();
+    state.view = 'deck'; state.deckId = d.id; render();
+    app.querySelector('[data-form="add-card"] input').focus();
+  } else if (kind === 'add-card') {
+    const front = f.front.value.trim(), back = f.back.value.trim();
+    if (!front || !back) return;
+    const dup = cardsOf(state.deckId).some(c => c.front.trim().toLowerCase() === front.toLowerCase());
+    if (dup && !confirm(`“${front}” is already in this deck. Add it anyway?`)) return;
+    db.cards.push(newCard(state.deckId, front, back)); save();
+    state.add = { front: '', back: '' };
+    render();
+    app.querySelector('[data-form="add-card"] input').focus();
+    toast('Card added');
+  } else if (kind === 'edit-card') {
+    const c = card(f.dataset.id), front = f.front.value.trim(), back = f.back.value.trim();
+    if (!front || !back) return;
+    c.front = front; c.back = back; save();
+    state.editingId = null; state.edit = null; render();
+  }
+});
+
+const showDay = e => { const el = e.target.closest?.('.day'); if (el) $('#day-readout').textContent = el.dataset.tip; };
+app.addEventListener('mouseover', showDay);
+app.addEventListener('focusin', showDay);
+
+app.addEventListener('input', e => {
+  if (e.target.id === 'bulk') { state.bulkText = e.target.value; updatePreview(); }
+  if (e.target.id === 'search') { state.search = e.target.value; applySearch(); }
+  const f = e.target.form;
+  if (f?.dataset.form === 'add-card') state.add[e.target.name] = e.target.value;
+  if (f?.dataset.form === 'edit-card') state.edit = { id: f.dataset.id, front: f.front.value, back: f.back.value };
+});
+
+app.addEventListener('change', e => {
+  if (e.target.dataset.setting === 'dir') { db.settings.dir = e.target.value; save(); }
+  if (e.target.id === 'sep') { state.sep = e.target.value; updatePreview(); }
+});
+
+app.addEventListener('toggle', e => {
+  if (e.target.matches('[data-bulk]')) state.bulkOpen = e.target.open;
+  if (e.target.matches('[data-daily-words]')) state.dailyOpen = e.target.open;
+}, true);
+
+// Enter in a definition box submits the form (Shift+Enter = new line)
+app.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && e.target.matches('form textarea')) {
+    e.preventDefault(); e.target.form.requestSubmit();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (state.view !== 'study' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target instanceof Element ? e.target : document.body;
+  if (t.matches('input, textarea, select')) return;
+  const s = state.study;
+  if (e.key === 'Escape') { exitStudy(); return; }
+  if (e.key.toLowerCase() === 's' && rated(s)) { skip(); return; }
+  if ((e.key === ' ' || e.key === 'Enter') && !t.matches('button')) { e.preventDefault(); flip(); return; }
+  if (s.mode === 'browse') {
+    if (e.key === 'ArrowRight') move(1);
+    if (e.key === 'ArrowLeft') move(-1);
+  } else if (s.flipped && s.i < s.queue.length && ['1', '2', '3'].includes(e.key)) {
+    rate(+e.key);
+  }
+});
+
+$('#file-json').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (f) importData(f);
+});
+
+$('#file-list').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const text = await f.text();
+  if (/\.csv$/i.test(f.name)) {
+    const rows = parseCSV(text);
+    state.bulkText = rows.map(r => r.join('\t')).join('\n');
+    state.sep = 'tab';
+  } else {
+    state.bulkText = text; state.sep = 'auto';
+  }
+  state.bulkOpen = true;
+  render();
+  toast('File loaded. Check the preview, then press “Add cards”.');
+});
+
+/* ---------- saving: every 3 min, when the tab is hidden or closed, and on demand ---------- */
+$('#save-now').addEventListener('click', () => saveAll(true));
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveAll(true); }
+});
+setInterval(() => saveAll(), AUTOSAVE_MS);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveAll(); });
+window.addEventListener('pagehide', () => saveAll());
+// Another tab saved: take its data, so this tab doesn't overwrite it with an old copy
+window.addEventListener('storage', e => {
+  if (e.key !== KEY) return;
+  load();
+  if (state.study) {
+    const s = state.study, cur = s.queue[s.i];
+    s.queue = s.queue.filter(id => card(id)); s.skipped = s.skipped.filter(id => card(id));
+    s.i = Math.max(0, cur && card(cur) ? s.queue.indexOf(cur) : Math.min(s.i, s.queue.length));
+    if (!s.queue.length) state.view = s.from === 'home' ? 'home' : 'deck';
+  }
+  render();
+});
+// Ask the browser not to clear our storage when disk space runs low
+if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+
+load();
+loadDraft();
+render();
+</script>
+</body>
+</html>
